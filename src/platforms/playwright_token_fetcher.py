@@ -127,17 +127,82 @@ class PlaywrightTokenFetcher(ABC):
                 await self.dismiss_cookie_banner(page)
                 auth_task = asyncio.create_task(self._capture_authorization_header(page))
 
-                if not manual_login:
-                    await self.fill_credentials(page, username, password)
-                    await self.submit_login(page)
+                async def monitor_page():
+                    verify_selectors = [
+                        "text=/insira o código/i",
+                        "text=/digite o código/i",
+                        "text=/código de verificação/i",
+                        "text=/código enviado/i",
+                        "text=/verification code/i",
+                        "text=/enter the code/i",
+                        "input[placeholder='000000']",
+                        "input[name='code']",
+                        "input[name='verificationCode']"
+                    ]
+                    
+                    showed_alert = False
+                    for _ in range(120): # Monitor for up to 120 seconds
+                        if auth_task.done():
+                            break
+                        try:
+                            is_verify_page = False
+                            for selector in verify_selectors:
+                                try:
+                                    if await page.locator(selector).count() > 0 and await page.locator(selector).first.is_visible():
+                                        is_verify_page = True
+                                        break
+                                except Exception:
+                                    continue
+                            
+                            if is_verify_page:
+                                if headless:
+                                    raise ValueError(
+                                        "A plataforma exigiu um código de verificação enviado por e-mail (2FA).\n\n"
+                                        "Como o navegador está oculto (modo padrão), o login não pode continuar.\n\n"
+                                        "Por favor, marque a opção 'Emular Navegador (2FA/Captcha)' e tente novamente para "
+                                        "poder digitar o código de verificação diretamente na janela do navegador."
+                                    )
+                                elif not showed_alert:
+                                    showed_alert = True
+                                    import ctypes
+                                    import threading
+                                    def show_box():
+                                        try:
+                                            # 0x40 is MB_ICONINFORMATION, 0x2000 is MB_TASKMODAL
+                                            ctypes.windll.user32.MessageBoxW(
+                                                0,
+                                                "Um código de verificação (2FA) foi enviado para o seu e-mail.\n\n"
+                                                "Por favor, verifique sua caixa de entrada, digite o código de 6 dígitos na "
+                                                "janela do navegador Chrome que foi aberta e conclua o login por lá.\n\n"
+                                                "Após concluir o login no navegador, clique em OK no diálogo do aplicativo.",
+                                                "Código de Verificação Requerido (2FA)",
+                                                0x40 | 0x2000
+                                            )
+                                        except Exception:
+                                            pass
+                                    threading.Thread(target=show_box, daemon=True).start()
+                                    break # Stop polling once alert is shown
+                        except Exception as e:
+                            if "closed" in str(e).lower():
+                                break
+                        await asyncio.sleep(1)
+
+                monitor_task = asyncio.create_task(monitor_page())
 
                 try:
-                    await page.wait_for_load_state("networkidle", timeout=self.network_idle_timeout_ms)
-                except PlaywrightTimeoutError:
-                    # Continue even if the page remains busy; the request listener might still capture the token.
-                    pass
+                    if not manual_login:
+                        await self.fill_credentials(page, username, password)
+                        await self.submit_login(page)
 
-                auth_header, _ = await auth_task
+                    # Wait for auth_task, checking for monitor_task errors
+                    while not auth_task.done():
+                        if monitor_task.done() and monitor_task.exception() is not None:
+                            raise monitor_task.exception()
+                        await asyncio.sleep(0.5)
+
+                    auth_header, _ = await auth_task
+                finally:
+                    monitor_task.cancel()
 
                 if not auth_header:
                     raise ValueError("Não foi possível capturar o token de autorização durante o login.")

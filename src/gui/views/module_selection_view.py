@@ -375,8 +375,8 @@ class ModuleSelectionView(QWidget):
                 "📂 downloads/<br/>"
                 " ┗ 📂 Forró/<br/>"
                 "    ┗ 📂 AV1 - Sequências/<br/>"
-                "       ┗ 📄 <b>01 - 1.0 Sequencia 1 - Dançando.mp4</b><br/>"
-                "       ┗ 📄 01 - 1.0 Sequencia 1 - Dançando - Descrição.txt"
+                "       ┗ 📄 <b>1. 1.0 Sequencia 1 - Dançando.mp4</b><br/>"
+                "       ┗ 📄 1. 1.0 Sequencia 1 - Dançando - Descrição.txt"
             )
         elif mode == "folders_descriptive":
             preview = (

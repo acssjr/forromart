@@ -1038,7 +1038,7 @@ class DownloadWorker(QRunnable):
                                 else:
                                     desc_suffix = "txt" if lesson_details.description.description_type in ("text", "markdown") else "html"
                                     if org_mode == "flat":
-                                        description_name = f"{lesson_order:02d} - {lesson_title} - Descrição.{desc_suffix}"
+                                        description_name = f"{lesson_order}. {lesson_title} - Descrição.{desc_suffix}"
                                     elif org_mode == "folders_descriptive":
                                         description_name = f"{lesson_order:02d}. {lesson_title} - Descrição.{desc_suffix}"
                                     else:
@@ -1090,7 +1090,7 @@ class DownloadWorker(QRunnable):
                                             if normalized:
                                                 for emb_idx, emb_url in enumerate(normalized, start=1):
                                                     if org_mode == "flat":
-                                                        emb_name = f"{lesson_order:02d} - {lesson_title} - e_Aula {emb_idx}"
+                                                        emb_name = f"{lesson_order}. {lesson_title} - e_Aula {emb_idx}"
                                                     elif org_mode == "folders_descriptive":
                                                         emb_name = f"{lesson_order:02d}. {lesson_title} - e_Aula {emb_idx}"
                                                     else:
@@ -1154,14 +1154,14 @@ class DownloadWorker(QRunnable):
                                     if org_mode == "flat":
                                         if has_multiple_videos:
                                             if getattr(self.settings, "try_keep_original_video_name", False) and base_video_title != "Aula":
-                                                video_name = f"{lesson_order:02d} - {lesson_title} - Parte {video_order} - {base_video_title}"
+                                                video_name = f"{lesson_order}. {lesson_title} - Parte {video_order} - {base_video_title}"
                                             else:
-                                                video_name = f"{lesson_order:02d} - {lesson_title} - Parte {video_order}"
+                                                video_name = f"{lesson_order}. {lesson_title} - Parte {video_order}"
                                         else:
                                             if getattr(self.settings, "try_keep_original_video_name", False) and base_video_title != "Aula":
-                                                video_name = f"{lesson_order:02d} - {lesson_title} - {base_video_title}"
+                                                video_name = f"{lesson_order}. {lesson_title} - {base_video_title}"
                                             else:
-                                                video_name = f"{lesson_order:02d} - {lesson_title}"
+                                                video_name = f"{lesson_order}. {lesson_title}"
                                     elif org_mode == "folders_descriptive":
                                         if has_multiple_videos:
                                             if getattr(self.settings, "try_keep_original_video_name", False) and base_video_title != "Aula":
@@ -1243,7 +1243,7 @@ class DownloadWorker(QRunnable):
                                     attachment_order = attachment.order or attachment_index
                                     sanitized_filename = sanitize_path_component(attachment.filename)
                                     if org_mode == "flat":
-                                        full_attachment_name = f"{lesson_order:02d} - {lesson_title} - {sanitized_filename}"
+                                        full_attachment_name = f"{lesson_order}. {lesson_title} - {sanitized_filename}"
                                     elif org_mode == "folders_descriptive":
                                         full_attachment_name = f"{lesson_order:02d}. {lesson_title} - {sanitized_filename}"
                                     else:
@@ -1331,7 +1331,7 @@ class DownloadWorker(QRunnable):
                                     )
                                 else:
                                     if org_mode == "flat":
-                                        aux_name = f"{lesson_order:02d} - {lesson_title} - Links Extras.txt"
+                                        aux_name = f"{lesson_order}. {lesson_title} - Links Extras.txt"
                                     elif org_mode == "folders_descriptive":
                                         aux_name = f"{lesson_order:02d}. {lesson_title} - Links Extras.txt"
                                     else:

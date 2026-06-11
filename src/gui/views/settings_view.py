@@ -143,6 +143,7 @@ class SettingsView(QWidget):
         self.download_path_edit = QLineEdit()
         self.download_path_edit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.download_path_edit.setMaximumWidth(600)
+        self.download_path_edit.editingFinished.connect(self.save_settings)
 
         # Create container layout for download path and browse button
         download_path_layout = QHBoxLayout()
@@ -985,6 +986,7 @@ class SettingsView(QWidget):
         if selected_dir:
             normalized_dir = str(Path(selected_dir).as_posix())
             self.download_path_edit.setText(normalized_dir)
+            self.save_settings()
 
     def _on_download_widevine_toggled(self, checked: bool) -> None:
         """Validates Widevine dependencies when the user enables the option."""

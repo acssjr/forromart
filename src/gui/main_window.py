@@ -227,21 +227,20 @@ class MainWindow(QMainWindow):
         logging.info(f"Courses fetched: {len(courses)} items")
 
         settings = self._settings_manager.get_settings()
-        if getattr(settings, "create_resume_summary", False):
-            resume_manager = ResumeManager(Path(settings.download_path))
-            saved_state = resume_manager.load_state(self._platform_name or "")
-            if saved_state and not resume_manager.is_complete(saved_state):
-                reply = QMessageBox.question(
-                    self,
-                    "Retomar download",
-                    (
-                        "Foi encontrado um resumo de download anterior para esta plataforma. "
-                        "Deseja retomar a sessão inacabada?"
-                    ),
-                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                )
-                if reply == QMessageBox.StandardButton.Yes:
-                    self._resume_state = saved_state
+        resume_manager = ResumeManager(Path(settings.download_path))
+        saved_state = resume_manager.load_state(self._platform_name or "")
+        if saved_state and not resume_manager.is_complete(saved_state):
+            reply = QMessageBox.question(
+                self,
+                "Retomar download",
+                (
+                    "Foi encontrado um progresso de download anterior para esta plataforma.\n\n"
+                    "Deseja retomar a sessão inacabada de onde parou?"
+                ),
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            )
+            if reply == QMessageBox.StandardButton.Yes:
+                self._resume_state = saved_state
 
         if self._resume_state:
             selection = self._resume_state.get("selection")
@@ -392,13 +391,24 @@ class MainWindow(QMainWindow):
     def _on_save_progress(self) -> None:
         if self._current_worker:
             self._current_worker.request_save_progress()
+            QMessageBox.information(
+                self,
+                "Progresso Salvo",
+                "O progresso atual foi salvo no disco com sucesso!\n\n"
+                "Nota: O aplicativo já salva automaticamente o progresso a cada aula concluída. "
+                "Se você cancelar o download ou fechar o app, poderá retomar de onde parou depois.",
+            )
 
     def _on_cancel_download(self) -> None:
         if self._current_worker:
             reply = QMessageBox.question(
                 self,
                 "Cancelar Download",
-                "Deseja cancelar o download?",
+                (
+                    "Deseja realmente cancelar o download?\n\n"
+                    "O progresso das aulas já baixadas foi salvo automaticamente. "
+                    "Para retomar de onde parou mais tarde, basta selecionar a mesma plataforma e buscar os cursos novamente."
+                ),
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             )
             if reply == QMessageBox.StandardButton.Yes:
@@ -457,6 +467,11 @@ class MainWindow(QMainWindow):
         try:
             self._platform.authenticate(creds)
             self.progress_view.log_message("Reautenticacao realizada com sucesso.")
+            QMessageBox.information(
+                self,
+                "Reautenticação",
+                "Reautenticação realizada com sucesso!\n\nO download continuará de onde parou.",
+            )
         except Exception as e:
             logging.error(f"Falha na reautenticacao: {e}", exc_info=True)
             QMessageBox.critical(

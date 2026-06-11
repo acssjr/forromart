@@ -309,7 +309,11 @@ class AuthView(QWidget):
                 previous_index = self.platform_combo.findText(previous_selection)
                 self.platform_combo.setCurrentIndex(previous_index)
             else:
-                self.platform_combo.setCurrentIndex(0)
+                hotmart_index = self.platform_combo.findText("Hotmart")
+                if hotmart_index != -1:
+                    self.platform_combo.setCurrentIndex(hotmart_index)
+                else:
+                    self.platform_combo.setCurrentIndex(0)
             self.platform_combo.setEnabled(True)
             self.platform_notice_label.hide()
             self._on_platform_changed(self.platform_combo.currentIndex())

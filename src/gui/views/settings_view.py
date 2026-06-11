@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
     QScrollArea,
     QTextEdit,
     QSizePolicy,
+    QFileDialog,
 )
 
 from pathlib import Path
@@ -142,6 +143,21 @@ class SettingsView(QWidget):
         self.download_path_edit = QLineEdit()
         self.download_path_edit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.download_path_edit.setMaximumWidth(600)
+
+        # Create container layout for download path and browse button
+        download_path_layout = QHBoxLayout()
+        download_path_layout.setContentsMargins(0, 0, 0, 0)
+        download_path_layout.setSpacing(6)
+        
+        self.select_path_button = QPushButton("Selecionar...")
+        self.select_path_button.setFixedWidth(100)
+        self.select_path_button.clicked.connect(self._browse_download_path)
+        
+        download_path_layout.addWidget(self.download_path_edit)
+        download_path_layout.addWidget(self.select_path_button)
+        
+        download_path_widget = QWidget()
+        download_path_widget.setLayout(download_path_layout)
 
         self.video_quality_combo = QComboBox()
         self.video_qualities = ["Mais alta", "1080p", "720p", "480p", "Mais baixa"]
@@ -319,7 +335,7 @@ class SettingsView(QWidget):
         self.download_widevine_check = QCheckBox("Baixar Widevine")
         self.download_widevine_check.toggled.connect(self._on_download_widevine_toggled)
 
-        self._form_layout.addRow("Caminho para Download:", self.download_path_edit)
+        self._form_layout.addRow("Caminho para Download:", download_path_widget)
         self._form_layout.addRow("Qualidade do Vídeo:", self.video_quality_combo)
         self._form_layout.addRow("Tamanho máximo do nome do Curso:", self.course_name_max_spin)
         self._form_layout.addRow("Tamanho máximo do nome do Módulo:", self.module_name_max_spin)
@@ -953,6 +969,22 @@ class SettingsView(QWidget):
                 "Caso prefira, você pode transcrever vídeos individualmente pelo Dashboard "
                 "na tela principal, desde que não tenha movido o conteúdo após o download."
             )
+
+    def _browse_download_path(self) -> None:
+        """Opens a directory dialog to select the download path."""
+        current_dir = self.download_path_edit.text()
+        if not current_dir or not Path(current_dir).exists():
+            current_dir = "."
+        
+        selected_dir = QFileDialog.getExistingDirectory(
+            self,
+            "Selecionar Pasta de Download",
+            current_dir,
+            QFileDialog.Option.ShowDirsOnly
+        )
+        if selected_dir:
+            normalized_dir = str(Path(selected_dir).as_posix())
+            self.download_path_edit.setText(normalized_dir)
 
     def _on_download_widevine_toggled(self, checked: bool) -> None:
         """Validates Widevine dependencies when the user enables the option."""

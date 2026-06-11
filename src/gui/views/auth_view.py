@@ -450,12 +450,36 @@ class AuthView(QWidget):
         requires_premium = field.requires_membership and not self._is_premium_member
 
         if field.field_type is AuthFieldType.PASSWORD:
+            container = QWidget()
+            layout = QHBoxLayout(container)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.setSpacing(6)
+
             line_edit = QLineEdit()
             line_edit.setEchoMode(QLineEdit.EchoMode.Password)
             line_edit.setPlaceholderText(field.placeholder)
             line_edit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
             line_edit.setMaximumWidth(600)
-            widget: QWidget = line_edit
+
+            toggle_btn = QPushButton("👁")
+            toggle_btn.setCheckable(True)
+            toggle_btn.setFixedWidth(32)
+            toggle_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+
+            def toggle_password(checked: bool):
+                if checked:
+                    line_edit.setEchoMode(QLineEdit.EchoMode.Normal)
+                    toggle_btn.setText("🙈")
+                else:
+                    line_edit.setEchoMode(QLineEdit.EchoMode.Password)
+                    toggle_btn.setText("👁")
+
+            toggle_btn.toggled.connect(toggle_password)
+
+            layout.addWidget(line_edit)
+            layout.addWidget(toggle_btn)
+
+            widget: QWidget = container
             accessor = lambda line=line_edit: line.text().strip()
             setter = lambda val, line=line_edit: line.setText(str(val))
             reset = line_edit.clear

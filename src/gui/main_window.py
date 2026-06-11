@@ -173,12 +173,15 @@ class MainWindow(QMainWindow):
             )
 
         message = str(value) or "Ocorreu um erro inesperado."
-        if exctype is ValueError and self._stacked_widget.currentWidget() is self.auth_tab_widget:
+        auth_keywords = ["usuário/senha", "senha", "login", "credentials", "autenticacao", "unauthorized", "autenticar", "session has not been authenticated", "auth"]
+        is_auth_error = any(kw in message.lower() for kw in auth_keywords)
+
+        if (exctype is ValueError or is_auth_error) and self._stacked_widget.currentWidget() is self.auth_tab_widget:
             self.auth_view.reset_auth_inputs()
             QMessageBox.warning(
                 self,
-                "Falha na autenticação",
-                f"{message}\n\nVerifique as credenciais e tente novamente.",
+                "Falha na Autenticação",
+                f"{message}\n\nPor favor, verifique suas credenciais e tente novamente.",
             )
             return
 
@@ -377,6 +380,22 @@ class MainWindow(QMainWindow):
         self._current_worker = None
         self.progress_view.set_download_active(False)
         self.progress_view.log_message("Worker finalizado.")
+
+        success_cnt = self.progress_view._success_count
+        partial_cnt = self.progress_view._partial_count
+        error_cnt = self.progress_view._error_count
+        skipped_cnt = self.progress_view._skipped_count
+
+        if success_cnt > 0 or error_cnt > 0 or partial_cnt > 0:
+            msg = f"O processo de download foi finalizado!\n\n" \
+                  f"✓ Sucesso: {success_cnt}\n" \
+                  f"⚠ Parcial: {partial_cnt}\n" \
+                  f"✗ Erro: {error_cnt}\n" \
+                  f"➡ Puladas: {skipped_cnt}"
+            if error_cnt > 0 or partial_cnt > 0:
+                QMessageBox.warning(self, "Download Finalizado com Alertas", msg)
+            else:
+                QMessageBox.information(self, "Download Concluído", msg)
 
     def _on_auto_paused(self) -> None:
         """Called when the worker auto-pauses due to error/partial thresholds."""

@@ -106,6 +106,28 @@ class SettingsView(QWidget):
         self.membership_password_edit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.membership_password_edit.setMaximumWidth(600)
 
+        self.membership_password_container = QWidget()
+        membership_password_layout = QHBoxLayout(self.membership_password_container)
+        membership_password_layout.setContentsMargins(0, 0, 0, 0)
+        membership_password_layout.setSpacing(6)
+
+        self.show_membership_password_btn = QPushButton("👁")
+        self.show_membership_password_btn.setCheckable(True)
+        self.show_membership_password_btn.setFixedWidth(32)
+        self.show_membership_password_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+
+        def _toggle_membership_password(checked: bool):
+            if checked:
+                self.membership_password_edit.setEchoMode(QLineEdit.EchoMode.Normal)
+                self.show_membership_password_btn.setText("🙈")
+            else:
+                self.membership_password_edit.setEchoMode(QLineEdit.EchoMode.Password)
+                self.show_membership_password_btn.setText("👁")
+
+        self.show_membership_password_btn.toggled.connect(_toggle_membership_password)
+        membership_password_layout.addWidget(self.membership_password_edit)
+        membership_password_layout.addWidget(self.show_membership_password_btn)
+
         self.save_membership_password_check = QCheckBox("Salvar senha do assinante")
         self.save_membership_password_check.toggled.connect(self._on_save_membership_password_toggled)
 
@@ -128,7 +150,7 @@ class SettingsView(QWidget):
         button_row.addStretch()
 
         auth_container_layout.addRow("E-mail:", self.membership_email_edit)
-        auth_container_layout.addRow("Senha:", self.membership_password_edit)
+        auth_container_layout.addRow("Senha:", self.membership_password_container)
         auth_container_layout.addRow("", self.save_membership_password_check)
         auth_container_layout.addRow(button_row)
         
@@ -426,6 +448,28 @@ class SettingsView(QWidget):
         self.proxy_password_edit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.proxy_password_edit.setMaximumWidth(600)
 
+        self.proxy_password_container = QWidget()
+        proxy_password_layout = QHBoxLayout(self.proxy_password_container)
+        proxy_password_layout.setContentsMargins(0, 0, 0, 0)
+        proxy_password_layout.setSpacing(6)
+
+        self.show_proxy_password_btn = QPushButton("👁")
+        self.show_proxy_password_btn.setCheckable(True)
+        self.show_proxy_password_btn.setFixedWidth(32)
+        self.show_proxy_password_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+
+        def _toggle_proxy_password(checked: bool):
+            if checked:
+                self.proxy_password_edit.setEchoMode(QLineEdit.EchoMode.Normal)
+                self.show_proxy_password_btn.setText("🙈")
+            else:
+                self.proxy_password_edit.setEchoMode(QLineEdit.EchoMode.Password)
+                self.show_proxy_password_btn.setText("👁")
+
+        self.show_proxy_password_btn.toggled.connect(_toggle_proxy_password)
+        proxy_password_layout.addWidget(self.proxy_password_edit)
+        proxy_password_layout.addWidget(self.show_proxy_password_btn)
+
         self.proxy_port_spin = NoScrollSpinBox()
         self.proxy_port_spin.setMaximum(2147483647)
         self.proxy_port_spin.setMinimumWidth(64)
@@ -582,7 +626,7 @@ class SettingsView(QWidget):
         self._paid_form_layout.addRow(self.use_http_proxy_check)
         self._paid_form_layout.addRow("Endereço do Proxy:", self.proxy_address_edit)
         self._paid_form_layout.addRow("Nome de usuário do Proxy:", self.proxy_username_edit)
-        self._paid_form_layout.addRow("Senha do Proxy:", self.proxy_password_edit)
+        self._paid_form_layout.addRow("Senha do Proxy:", self.proxy_password_container)
         self._paid_form_layout.addRow("Porta do Proxy:", self.proxy_port_spin)
         self._paid_form_layout.addRow(self.use_whisper_transcription_check)
         self._paid_form_layout.addRow("Modelo do Whisper:", self.whisper_model_combo)

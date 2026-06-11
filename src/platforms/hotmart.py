@@ -115,12 +115,31 @@ class HotmartTokenFetcher(PlaywrightTokenFetcher):
             except Exception:
                 pass
 
-        logging.info("Filling username/email...")
+        # Wait for email field to load
         await page.wait_for_selector("#username")
+
+        # Check if password field is already visible on the screen
+        try:
+            password_visible_initially = await page.locator("#password").is_visible()
+        except Exception:
+            password_visible_initially = False
+
+        if password_visible_initially:
+            logging.info("Password field is visible initially (single-step form).")
+            # Block inputs, fill both email and password, then unblock
+            await block_inputs("Preenchendo credenciais...")
+            try:
+                await page.locator("#username").fill(username)
+                await page.locator("#password").fill(password)
+            finally:
+                await unblock_inputs()
+            return
+
+        # Multi-step flow (only email visible initially)
+        logging.info("Password field not visible initially. Running multi-step flow...")
         
-        # Block inputs before typing email
+        # Block inputs and fill email
         await block_inputs("Preenchendo e-mail automaticamente...")
-        
         try:
             await page.locator("#username").fill(username)
 
@@ -142,7 +161,7 @@ class HotmartTokenFetcher(PlaywrightTokenFetcher):
             # Unblock so page can update or user can interact if 2FA/Captcha shows
             await unblock_inputs()
 
-        # Check if password field is visible
+        # Check if password field is visible now
         try:
             password_visible = await page.locator("#password").is_visible()
         except Exception:

@@ -53,6 +53,7 @@ class CourseSelectionView(QWidget):
                 padding: 4px;
                 color: #e0e0e0;
                 font-size: 12px;
+                outline: 0;
             }
             QListWidget::item {
                 border-radius: 4px;
@@ -60,20 +61,37 @@ class CourseSelectionView(QWidget):
                 margin: 2px 4px;
                 color: #e0e0e0;
                 border-left: 4px solid transparent;
+                outline: 0;
             }
             QListWidget::item:hover {
                 background-color: #2d2d2d;
                 color: #ffffff;
+                outline: 0;
             }
             QListWidget::item:selected {
                 background-color: #e17055; /* Modern coral/orange accent */
                 color: #ffffff;
                 font-weight: bold;
                 border-left: 5px solid #d63031; /* Prominent accent indicator */
+                outline: 0;
             }
             QListWidget::item:selected:hover {
                 background-color: #d63031;
                 color: #ffffff;
+                outline: 0;
+            }
+            QListWidget::item:selected:active {
+                background-color: #e17055;
+                color: #ffffff;
+                outline: 0;
+            }
+            QListWidget::item:selected:!active {
+                background-color: #e17055;
+                color: #ffffff;
+                outline: 0;
+            }
+            QListWidget::item:focus {
+                outline: 0;
             }
         """)
         
@@ -163,3 +181,11 @@ class CourseSelectionView(QWidget):
             return
 
         self.courses_selected.emit(selected_courses)
+
+    def keyPressEvent(self, event) -> None:
+        """Clear selection on Esc key press."""
+        if event.key() == Qt.Key.Key_Escape:
+            self.course_list.clearSelection()
+            event.accept()
+        else:
+            super().keyPressEvent(event)

@@ -71,11 +71,70 @@ class HotmartTokenFetcher(PlaywrightTokenFetcher):
             return
 
     async def fill_credentials(self, page: Page, username: str, password: str) -> None:
+        logging.info("Filling username/email...")
         await page.wait_for_selector("#username")
         await page.click("#username")
         await page.type("#username", username, delay=120)
 
-        await page.wait_for_selector("#password")
+        # Click next/continue or press Enter
+        try:
+            submit_btn = page.locator("#submit-button")
+            if await submit_btn.count() > 0 and await submit_btn.is_visible():
+                await submit_btn.click()
+                logging.info("Clicked submit button to submit email.")
+            else:
+                await page.keyboard.press("Enter")
+                logging.info("Pressed Enter to submit email.")
+        except Exception as e:
+            logging.warning(f"Could not click submit button, pressing Enter instead: {e}")
+            await page.keyboard.press("Enter")
+
+        # Wait for transition/navigation
+        await page.wait_for_timeout(2000)
+
+        # Check if password field is visible
+        try:
+            password_visible = await page.locator("#password").is_visible()
+        except Exception:
+            password_visible = False
+
+        if not password_visible:
+            logging.info("Password field is not visible. Checking for 'Login with password' toggles...")
+            selectors_to_try = [
+                "text=/entrar com senha/i",
+                "text=/acessar com senha/i",
+                "text=/fazer login com senha/i",
+                "text=/entrar com a senha/i",
+                "text=/acessar com a senha/i",
+                "text=/senha/i",
+                "text=/password/i",
+                "button:has-text('senha')",
+                "a:has-text('senha')",
+                "button:has-text('password')",
+                "a:has-text('password')",
+            ]
+
+            clicked = False
+            for selector in selectors_to_try:
+                try:
+                    loc = page.locator(selector)
+                    if await loc.count() > 0 and await loc.first.is_visible():
+                        await loc.first.click(timeout=2000)
+                        clicked = True
+                        logging.info(f"Successfully clicked password option using selector: '{selector}'")
+                        break
+                except Exception as e:
+                    logging.debug(f"Selector '{selector}' not clickable: {e}")
+                    continue
+
+            if not clicked:
+                logging.warning("Could not automatically click 'Login with password'. If the browser is open (headful), please click the link to enter password.")
+
+            # Wait again for the password field to appear
+            await page.wait_for_timeout(1500)
+
+        logging.info("Filling password...")
+        await page.wait_for_selector("#password", timeout=10000)
         await page.click("#password")
         await page.type("#password", password, delay=120)
 

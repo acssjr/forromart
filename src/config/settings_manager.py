@@ -61,7 +61,7 @@ class AppSettings:
     max_course_name_length: int = 40
     max_module_name_length: int = 60
     max_lesson_name_length: int = 60
-    max_file_name_length: int = 30
+    max_file_name_length: int = 100
     permissions: list[str] = field(default_factory=list)
     has_full_permissions: bool = True
     membership_email: str = ""

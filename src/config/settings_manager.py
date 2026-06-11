@@ -51,7 +51,20 @@ class AppSettings:
         "t.me",
         "telegram.me",
         "telegram.org",
-        "discord.gg"
+        "discord.gg",
+        "mercadolivre.com",
+        "mercadolivre.com.br",
+        "mercadolibre.com",
+        "amazon.com",
+        "amazon.com.br",
+        "shopee.com",
+        "shopee.com.br",
+        "aliexpress.com",
+        "magazineluiza.com.br",
+        "casasbahia.com.br",
+        "americanas.com.br",
+        "shein.com",
+        "ebay.com"
     ])
     use_whisper_transcription: bool = False
     whisper_model: str = "base"

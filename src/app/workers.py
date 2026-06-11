@@ -1107,9 +1107,15 @@ class DownloadWorker(QRunnable):
                                                         emb_domain = ""
 
                                                     blacklist: List[str] = getattr(self.settings, "embed_domain_blacklist", []) or []
+                                                    ecommerce_domains = [
+                                                        "mercadolivre.com", "mercadolivre.com.br", "mercadolibre.com",
+                                                        "amazon.com", "amazon.com.br", "shopee.com", "shopee.com.br",
+                                                        "aliexpress.com", "magazineluiza.com.br", "casasbahia.com.br",
+                                                        "americanas.com.br", "shein.com", "ebay.com"
+                                                    ]
                                                     is_blacklisted = any(
                                                         emb_domain == b or emb_domain.endswith("." + b)
-                                                        for b in blacklist
+                                                        for b in blacklist + ecommerce_domains
                                                     )
                                                     if is_blacklisted:
                                                         self.signals.result.emit(

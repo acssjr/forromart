@@ -66,7 +66,7 @@ class ModuleSelectionView(QWidget):
         combo_layout = QHBoxLayout()
         combo_layout.addWidget(QLabel("Modo de Organização:"))
         
-        self.folder_org_combo = QComboBox()
+        self.folder_org_combo = NoScrollComboBox()
         self.folder_org_combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.folder_org_combo.addItem("Padrão (Subpastas + 1. Aula.mp4)", "legacy")
         self.folder_org_combo.addItem("Plano (Sem subpastas de aula - Recomendado)", "flat")
@@ -304,6 +304,12 @@ class ModuleSelectionView(QWidget):
 
     def _on_item_clicked(self, item: QTreeWidgetItem, column: int) -> None:
         from PySide6.QtWidgets import QApplication
+
+
+class NoScrollComboBox(QComboBox):
+    def wheelEvent(self, event) -> None:
+        event.ignore()
+
         modifiers = QApplication.keyboardModifiers()
         if modifiers & Qt.KeyboardModifier.ShiftModifier and getattr(self, "_last_clicked_item", None):
             self._select_range(self._last_clicked_item, item, column)

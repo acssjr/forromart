@@ -30,6 +30,16 @@ from src.utils.filesystem import get_executable_path
 from urllib.parse import urlparse
 
 
+class NoScrollComboBox(QComboBox):
+    def wheelEvent(self, event) -> None:
+        event.ignore()
+
+class NoScrollSpinBox(QSpinBox):
+    def wheelEvent(self, event) -> None:
+        event.ignore()
+
+
+
 class SettingsView(QWidget):
     """A widget to display and edit application settings."""
 
@@ -162,35 +172,35 @@ class SettingsView(QWidget):
         download_path_widget = QWidget()
         download_path_widget.setLayout(download_path_layout)
 
-        self.video_quality_combo = QComboBox()
+        self.video_quality_combo = NoScrollComboBox()
         self.video_qualities = ["Mais alta", "1080p", "720p", "480p", "Mais baixa"]
         self.video_quality_combo.addItems(self.video_qualities)
         self.video_quality_combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.video_quality_combo.setMaximumWidth(600)
 
-        self.course_name_max_spin = QSpinBox()
+        self.course_name_max_spin = NoScrollSpinBox()
         self.course_name_max_spin.setMaximum(2147483647)
         self.course_name_max_spin.setMinimumWidth(64)
 
-        self.module_name_max_spin = QSpinBox()
+        self.module_name_max_spin = NoScrollSpinBox()
         self.module_name_max_spin.setMaximum(2147483647)
         self.module_name_max_spin.setMinimumWidth(64)
 
-        self.lesson_name_max_spin = QSpinBox()
+        self.lesson_name_max_spin = NoScrollSpinBox()
         self.lesson_name_max_spin.setMaximum(2147483647)
         self.lesson_name_max_spin.setMinimumWidth(64)
 
-        self.file_name_max_spin = QSpinBox()
+        self.file_name_max_spin = NoScrollSpinBox()
         self.file_name_max_spin.setMaximum(2147483647)
         self.file_name_max_spin.setMinimumWidth(64)
 
-        self.timeout_spin = QSpinBox()
+        self.timeout_spin = NoScrollSpinBox()
         self.timeout_spin.setMaximum(2147483647)
         self.timeout_spin.setMinimumWidth(64)
         self.download_subtitles_check = QCheckBox("Baixar Legendas")
         self.download_podcasts_check = QCheckBox("Baixar Podcasts (Aulas apenas áudio)")
 
-        self.subtitle_lang_combo = QComboBox()
+        self.subtitle_lang_combo = NoScrollComboBox()
         self.subtitle_lang_combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.subtitle_lang_combo.setMaximumWidth(600)
         self.subtitle_languages = {
@@ -234,12 +244,12 @@ class SettingsView(QWidget):
         self.hardcode_subtitles_check = QCheckBox("Incorporar Legendas no Vídeo")
         self.download_embedded_check = QCheckBox("Baixar Vídeos na Descrição (recomendado)")
         self.enable_download_history_check = QCheckBox("Habilitar histórico de downloads (Dashboard Web)")
-        self.dashboard_port_spin = QSpinBox()
+        self.dashboard_port_spin = NoScrollSpinBox()
         self.dashboard_port_spin.setMaximum(2147483647)
         self.dashboard_port_spin.setValue(6102)
         self.dashboard_port_spin.setToolTip("Porta padrão: 6102")
 
-        self.audio_lang_combo = QComboBox()
+        self.audio_lang_combo = NoScrollComboBox()
         self.audio_lang_combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.audio_lang_combo.setMaximumWidth(600)
         self.audio_languages = {
@@ -306,7 +316,7 @@ class SettingsView(QWidget):
             "Caminho para o arquivo de cookies do YouTube (formato Netscape)."
         )
 
-        self.js_runtime_combo = QComboBox()
+        self.js_runtime_combo = NoScrollComboBox()
         self.js_runtime_combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.js_runtime_combo.setMaximumWidth(600)
         self.js_runtimes = {
@@ -362,7 +372,7 @@ class SettingsView(QWidget):
         self._form_layout.addRow(self.enable_download_history_check)
         self._form_layout.addRow("Porta do Dashboard (padrão: 6102):", self.dashboard_port_spin)
 
-        self.folder_org_combo = QComboBox()
+        self.folder_org_combo = NoScrollComboBox()
         self.folder_org_combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.folder_org_combo.setMaximumWidth(600)
         self.folder_org_combo.addItem("Padrao (Subpastas + 1. Aula.mp4)", "legacy")
@@ -383,15 +393,15 @@ class SettingsView(QWidget):
         self.user_agent_edit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.user_agent_edit.setMaximumWidth(600)
 
-        self.max_concurrent_downloads_spin = QSpinBox()
+        self.max_concurrent_downloads_spin = NoScrollSpinBox()
         self.max_concurrent_downloads_spin.setMaximum(2147483647)
         self.max_concurrent_downloads_spin.setMinimumWidth(64)
 
-        self.retry_attempts_spin = QSpinBox()
+        self.retry_attempts_spin = NoScrollSpinBox()
         self.retry_attempts_spin.setMaximum(2147483647)
         self.retry_attempts_spin.setMinimumWidth(64)
 
-        self.retry_delay_spin = QSpinBox()
+        self.retry_delay_spin = NoScrollSpinBox()
         self.retry_delay_spin.setMaximum(2147483647)
         self.retry_delay_spin.setMinimumWidth(64)
         self.auto_reauth_check = QCheckBox("Tentar re-autenticação automática em caso de erro 400/401")
@@ -416,14 +426,14 @@ class SettingsView(QWidget):
         self.proxy_password_edit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.proxy_password_edit.setMaximumWidth(600)
 
-        self.proxy_port_spin = QSpinBox()
+        self.proxy_port_spin = NoScrollSpinBox()
         self.proxy_port_spin.setMaximum(2147483647)
         self.proxy_port_spin.setMinimumWidth(64)
 
         self.use_whisper_transcription_check = QCheckBox(
             "Usar Whisper para transcrever os vídeos baixados (requer ffmpeg)"
         )
-        self.whisper_model_combo = QComboBox()
+        self.whisper_model_combo = NoScrollComboBox()
         self.whisper_model_combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.whisper_model_combo.setMaximumWidth(600)
         self.whisper_models = [
@@ -437,7 +447,7 @@ class SettingsView(QWidget):
         ]
         self.whisper_model_combo.addItems(self.whisper_models)
 
-        self.whisper_language_combo = QComboBox()
+        self.whisper_language_combo = NoScrollComboBox()
         self.whisper_language_combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.whisper_language_combo.setMaximumWidth(600)
         self.whisper_languages = {
@@ -465,7 +475,7 @@ class SettingsView(QWidget):
         for name, code in self.whisper_languages.items():
             self.whisper_language_combo.addItem(name, userData=code)
 
-        self.whisper_output_format_combo = QComboBox()
+        self.whisper_output_format_combo = NoScrollComboBox()
         self.whisper_output_format_combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.whisper_output_format_combo.setMaximumWidth(600)
         self.whisper_output_formats = {
@@ -481,14 +491,14 @@ class SettingsView(QWidget):
             "Transcrever em paralelo ao download (não bloquear downloads)"
         )
 
-        self.lesson_watch_status_combo = QComboBox()
+        self.lesson_watch_status_combo = NoScrollComboBox()
         self.lesson_watch_status_combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.lesson_watch_status_combo.setMaximumWidth(600)
         self.lesson_watch_status_combo.addItem("NÃO ALTERAR ESTADO", "none")
         self.lesson_watch_status_combo.addItem("Marcar como ASSISTIDO", "watched")
         self.lesson_watch_status_combo.addItem("MARCAR COMO NÃO ASSISTIDO", "unwatched")
 
-        self.lesson_access_delay_spin = QSpinBox()
+        self.lesson_access_delay_spin = NoScrollSpinBox()
         self.lesson_access_delay_spin.setRange(-1, 3600)
         self.lesson_access_delay_spin.setMinimumWidth(64)
         self.lesson_access_delay_spin.setSpecialValueText("Duração do Vídeo")
@@ -497,7 +507,7 @@ class SettingsView(QWidget):
             "Use -1 para esperar a duração do vídeo baixado."
         )
 
-        self.pause_on_partial_spin = QSpinBox()
+        self.pause_on_partial_spin = NoScrollSpinBox()
         self.pause_on_partial_spin.setRange(0, 9999)
         self.pause_on_partial_spin.setMinimumWidth(64)
         self.pause_on_partial_spin.setSpecialValueText("Desativado")
@@ -506,7 +516,7 @@ class SettingsView(QWidget):
             "0 = desativado."
         )
 
-        self.pause_on_error_spin = QSpinBox()
+        self.pause_on_error_spin = NoScrollSpinBox()
         self.pause_on_error_spin.setRange(0, 9999)
         self.pause_on_error_spin.setMinimumWidth(64)
         self.pause_on_error_spin.setSpecialValueText("Desativado")
@@ -1125,4 +1135,3 @@ class SettingsView(QWidget):
         ]
         for te in text_edits:
             te.textChanged.connect(self.save_settings)
-

@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 from typing import Any
 from PySide6.QtCore import QThreadPool, QTimer
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow, QWidget, QStackedWidget, QTabWidget, QMessageBox, QPushButton, QInputDialog, QLineEdit
 
 from src.config.settings_manager import SettingsManager
@@ -27,9 +28,13 @@ class MainWindow(QMainWindow):
     def __init__(self, settings_manager: SettingsManager, parent: QWidget | None = None) -> None:
         """Initializes the main window."""
         super().__init__(parent)
-        self.setWindowTitle("Forromart! - Versão Customizada Premium (Bypass)")
+        self.setWindowTitle("forrómart: Modded by: acssjr")
         self.setMinimumSize(650, 450)
         self.resize(750, 650)
+
+        icon_path = Path(__file__).parent / "forromart_icon.png"
+        if icon_path.exists():
+            self.setWindowIcon(QIcon(str(icon_path)))
 
         self._settings_manager = settings_manager
         self._platform: BasePlatform | None = None

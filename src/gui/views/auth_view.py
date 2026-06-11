@@ -23,6 +23,12 @@ from src.config.settings_manager import SettingsManager
 from src.config.credentials_manager import CredentialsManager
 from src.platforms.base import AuthField, AuthFieldType, PlatformFactory
 
+
+class NoScrollComboBox(QComboBox):
+    def wheelEvent(self, event) -> None:
+        event.ignore()
+
+
 ValueAccessor = Callable[[], Any]
 ValueSetter = Callable[[Any], None]
 
@@ -55,7 +61,7 @@ class AuthView(QWidget):
         platform_layout.setSpacing(8)
         platform_label = QLabel("Plataforma:")
         platform_label.setStyleSheet("font-weight: 600;")
-        self.platform_combo = QComboBox()
+        self.platform_combo = NoScrollComboBox()
         self.platform_combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.platform_combo.setMaximumWidth(500)
         self.dashboard_button = QPushButton("Dashboard")
@@ -140,7 +146,6 @@ class AuthView(QWidget):
         scroll_hint.setStyleSheet("font-size: 10px; color: #888888; font-style: italic; margin-top: 10px;")
         instructions_header.addWidget(scroll_hint)
         instructions_header.addStretch()
-        layout.addLayout(instructions_header)
 
         self.instructions_text = QTextEdit()
         self.instructions_text.setReadOnly(True)
@@ -173,7 +178,7 @@ class AuthView(QWidget):
         self.instructions_text.setMinimumHeight(100)
         self.instructions_text.setMaximumHeight(140)
         self.instructions_text.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        layout.addWidget(self.instructions_text)
+        self.instructions_text.hide()
 
         # Add stretch to push button to bottom
         layout.addStretch()
@@ -597,5 +602,4 @@ class _KeyValueEditor(QWidget):
             widget.setParent(None)
         self._rows.clear()
         self._add_row()
-
 

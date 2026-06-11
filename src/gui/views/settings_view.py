@@ -57,7 +57,9 @@ class SettingsView(QWidget):
 
         scroll_area.setWidget(scroll_content)
 
+        self._loading_settings = False
         self.load_settings()
+        self._connect_auto_save()
 
         save_button = QPushButton("Salvar Configurações")
         save_button.clicked.connect(self.save_settings)
@@ -600,6 +602,7 @@ class SettingsView(QWidget):
 
     def load_settings(self) -> None:
         """Loads settings from the manager and populates the UI."""
+        self._loading_settings = True
         settings = self._settings_manager.get_settings()
         self.download_path_edit.setText(settings.download_path)
 
@@ -733,9 +736,12 @@ class SettingsView(QWidget):
             self.embed_blacklist_edit.setPlainText("\n".join(normalized))
         except Exception:
             self.embed_blacklist_edit.setPlainText("")
+        self._loading_settings = False
 
     def save_settings(self) -> None:
         """Saves the current UI settings back to the file."""
+        if getattr(self, "_loading_settings", False):
+            return
         current_settings = self._settings_manager.get_settings()
         updated_settings = AppSettings(
             download_path=self.download_path_edit.text(),
@@ -1032,4 +1038,91 @@ class SettingsView(QWidget):
             self.download_widevine_check.blockSignals(True)
             self.download_widevine_check.setChecked(False)
             self.download_widevine_check.blockSignals(False)
+
+    def _connect_auto_save(self) -> None:
+        """Connects UI change signals to save_settings for seamless auto-saving."""
+        # QLineEdit inputs
+        line_edits = [
+            self.download_path_edit,
+            self.ffmpeg_path_edit,
+            self.bento4_path_edit,
+            self.youtube_cookies_path_edit,
+            self.js_runtime_path_edit,
+            self.user_agent_edit,
+            self.cdm_path_edit,
+            self.proxy_address_edit,
+            self.proxy_username_edit,
+            self.proxy_password_edit,
+            self.ffmpeg_args_edit,
+        ]
+        for le in line_edits:
+            le.editingFinished.connect(self.save_settings)
+
+        # QComboBox inputs
+        combos = [
+            self.video_quality_combo,
+            self.subtitle_lang_combo,
+            self.audio_lang_combo,
+            self.js_runtime_combo,
+            self.folder_org_combo,
+            self.lesson_watch_status_combo,
+            self.whisper_model_combo,
+            self.whisper_language_combo,
+            self.whisper_output_format_combo,
+        ]
+        for combo in combos:
+            combo.currentIndexChanged.connect(self.save_settings)
+
+        # QSpinBox inputs
+        spin_boxes = [
+            self.course_name_max_spin,
+            self.module_name_max_spin,
+            self.lesson_name_max_spin,
+            self.file_name_max_spin,
+            self.timeout_spin,
+            self.dashboard_port_spin,
+            self.max_concurrent_downloads_spin,
+            self.retry_attempts_spin,
+            self.retry_delay_spin,
+            self.lesson_access_delay_spin,
+            self.pause_on_partial_spin,
+            self.pause_on_error_spin,
+            self.proxy_port_spin,
+        ]
+        for sb in spin_boxes:
+            sb.valueChanged.connect(self.save_settings)
+
+        # QCheckBox inputs
+        checkboxes = [
+            self.download_subtitles_check,
+            self.download_podcasts_check,
+            self.hardcode_subtitles_check,
+            self.download_embedded_check,
+            self.keep_audio_only_check,
+            self.try_keep_original_video_name_check,
+            self.delete_folder_on_error_check,
+            self.skip_attachment_download_check,
+            self.download_widevine_check,
+            self.enable_download_history_check,
+            self.skip_video_download_check,
+            self.skip_description_download_check,
+            self.skip_auxiliary_urls_download_check,
+            self.skip_existing_files_check,
+            self.auto_reauth_check,
+            self.create_resume_summary_check,
+            self.use_http_proxy_check,
+            self.use_whisper_transcription_check,
+            self.whisper_parallel_transcription_check,
+            self.run_ffmpeg_check,
+        ]
+        for cb in checkboxes:
+            cb.toggled.connect(self.save_settings)
+
+        # QTextEdit inputs
+        text_edits = [
+            self.allowed_extensions_edit,
+            self.embed_blacklist_edit,
+        ]
+        for te in text_edits:
+            te.textChanged.connect(self.save_settings)
 

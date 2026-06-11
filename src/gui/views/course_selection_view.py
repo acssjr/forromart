@@ -45,6 +45,37 @@ class CourseSelectionView(QWidget):
 
         self.course_list = QListWidget()
         self.course_list.setSelectionMode(QListWidget.SelectionMode.MultiSelection)
+        self.course_list.setStyleSheet("""
+            QListWidget {
+                background-color: #212121;
+                border: 1px solid #3d3d3d;
+                border-radius: 6px;
+                padding: 4px;
+                color: #e0e0e0;
+                font-size: 12px;
+            }
+            QListWidget::item {
+                border-radius: 4px;
+                padding: 10px 14px;
+                margin: 2px 4px;
+                color: #e0e0e0;
+                border-left: 4px solid transparent;
+            }
+            QListWidget::item:hover {
+                background-color: #2d2d2d;
+                color: #ffffff;
+            }
+            QListWidget::item:selected {
+                background-color: #e17055; /* Modern coral/orange accent */
+                color: #ffffff;
+                font-weight: bold;
+                border-left: 5px solid #d63031; /* Prominent accent indicator */
+            }
+            QListWidget::item:selected:hover {
+                background-color: #d63031;
+                color: #ffffff;
+            }
+        """)
         
         self._all_courses: List[Dict[str, Any]] = []
 

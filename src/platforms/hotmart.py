@@ -71,26 +71,76 @@ class HotmartTokenFetcher(PlaywrightTokenFetcher):
             return
 
     async def fill_credentials(self, page: Page, username: str, password: str) -> None:
+        async def block_inputs(message: str):
+            try:
+                await page.evaluate(f"""(msg) => {{
+                    const old = document.getElementById('automation-overlay');
+                    if (old) old.remove();
+
+                    const overlay = document.createElement('div');
+                    overlay.id = 'automation-overlay';
+                    overlay.style.position = 'fixed';
+                    overlay.style.top = '0';
+                    overlay.style.left = '0';
+                    overlay.style.width = '100vw';
+                    overlay.style.height = '100vh';
+                    overlay.style.zIndex = '99999';
+                    overlay.style.backgroundColor = 'rgba(0,0,0,0.3)';
+                    overlay.style.cursor = 'wait';
+                    overlay.innerHTML = `<div style="color:white; font-family:sans-serif; font-size:16px; text-align:center; margin-top:30vh; font-weight:bold; background: rgba(0,0,0,0.7); padding: 15px 25px; display: inline-block; border-radius: 8px; left: 50%; position: absolute; transform: translateX(-50%);">${{msg}}</div>`;
+                    document.body.appendChild(overlay);
+
+                    if (!window._blockKeyboard) {{
+                        window._blockKeyboard = (e) => {{ e.preventDefault(); e.stopPropagation(); }};
+                        window.addEventListener('keydown', window._blockKeyboard, true);
+                        window.addEventListener('keypress', window._blockKeyboard, true);
+                        window.addEventListener('keyup', window._blockKeyboard, true);
+                    }}
+                }}""", message)
+            except Exception:
+                pass
+
+        async def unblock_inputs():
+            try:
+                await page.evaluate("""() => {
+                    const overlay = document.getElementById('automation-overlay');
+                    if (overlay) overlay.remove();
+                    if (window._blockKeyboard) {
+                        window.removeEventListener('keydown', window._blockKeyboard, true);
+                        window.removeEventListener('keypress', window._blockKeyboard, true);
+                        window.removeEventListener('keyup', window._blockKeyboard, true);
+                        window._blockKeyboard = null;
+                    }
+                }""")
+            except Exception:
+                pass
+
         logging.info("Filling username/email...")
         await page.wait_for_selector("#username")
-        await page.click("#username")
-        await page.type("#username", username, delay=120)
-
-        # Click next/continue or press Enter
+        
+        # Block inputs before typing email
+        await block_inputs("Preenchendo e-mail automaticamente...")
+        
         try:
-            submit_btn = page.locator("#submit-button")
-            if await submit_btn.count() > 0 and await submit_btn.is_visible():
-                await submit_btn.click()
-                logging.info("Clicked submit button to submit email.")
-            else:
-                await page.keyboard.press("Enter")
-                logging.info("Pressed Enter to submit email.")
-        except Exception as e:
-            logging.warning(f"Could not click submit button, pressing Enter instead: {e}")
-            await page.keyboard.press("Enter")
+            await page.locator("#username").fill(username)
 
-        # Wait for transition/navigation
-        await page.wait_for_timeout(2000)
+            # Click next/continue or press Enter
+            try:
+                submit_btn = page.locator("#submit-button")
+                if await submit_btn.count() > 0 and await submit_btn.is_visible():
+                    await submit_btn.click()
+                    logging.info("Clicked submit button to submit email.")
+                else:
+                    await page.keyboard.press("Enter")
+                    logging.info("Pressed Enter to submit email.")
+            except Exception as e:
+                logging.warning(f"Could not click submit button, pressing Enter instead: {e}")
+                await page.keyboard.press("Enter")
+        finally:
+            # Wait for transition/navigation
+            await page.wait_for_timeout(2000)
+            # Unblock so page can update or user can interact if 2FA/Captcha shows
+            await unblock_inputs()
 
         # Check if password field is visible
         try:
@@ -133,10 +183,16 @@ class HotmartTokenFetcher(PlaywrightTokenFetcher):
             # Wait again for the password field to appear
             await page.wait_for_timeout(1500)
 
-        logging.info("Filling password...")
-        await page.wait_for_selector("#password", timeout=10000)
-        await page.click("#password")
-        await page.type("#password", password, delay=120)
+        # Block inputs again before typing password
+        await block_inputs("Preenchendo senha automaticamente...")
+
+        try:
+            logging.info("Filling password...")
+            await page.wait_for_selector("#password", timeout=10000)
+            await page.locator("#password").fill(password)
+        finally:
+            # Unblock inputs so page can proceed to submit and handle 2FA/Code page normally
+            await unblock_inputs()
 
     async def submit_login(self, page: Page) -> None:
         await page.click("#submit-button", force=True)

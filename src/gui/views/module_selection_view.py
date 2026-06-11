@@ -16,6 +16,10 @@ from PySide6.QtWidgets import (
 )
 from src.config.settings_manager import SettingsManager
 
+class NoScrollComboBox(QComboBox):
+    def wheelEvent(self, event) -> None:
+        event.ignore()
+
 class ModuleSelectionView(QWidget):
     """Third screen: allows selection of modules and lessons."""
     download_requested = Signal(str)
@@ -304,12 +308,6 @@ class ModuleSelectionView(QWidget):
 
     def _on_item_clicked(self, item: QTreeWidgetItem, column: int) -> None:
         from PySide6.QtWidgets import QApplication
-
-
-class NoScrollComboBox(QComboBox):
-    def wheelEvent(self, event) -> None:
-        event.ignore()
-
         modifiers = QApplication.keyboardModifiers()
         if modifiers & Qt.KeyboardModifier.ShiftModifier and getattr(self, "_last_clicked_item", None):
             self._select_range(self._last_clicked_item, item, column)

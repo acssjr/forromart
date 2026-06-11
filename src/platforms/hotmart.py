@@ -140,7 +140,12 @@ Para usuários gratuitos: Como obter o token da Hotmart?:
                 ),
             )
         except Exception as exc:
-            raise ConnectionError("Falha ao obter o token via Playwright. Revise usuário/senha.") from exc
+            raise ConnectionError(
+                "Falha ao obter o token via Playwright. Revise usuário/senha. "
+                "Caso a Hotmart solicite um código de verificação por e-mail ou reCAPTCHA, "
+                "certifique-se de manter a opção 'Emular Navegador (2FA/Captcha)' marcada para que a "
+                "janela do navegador seja aberta e você possa inserir o código ou resolver o captcha manualmente."
+            ) from exc
     
     def get_session(self) -> Optional[requests.Session]:
         return self._session

@@ -506,10 +506,12 @@ class AuthView(QWidget):
             reset = editor.reset_values
         elif field.field_type is AuthFieldType.CHECKBOX:
             checkbox = QCheckBox()
+            if field.name == "browser_emulation":
+                checkbox.setChecked(True)
             widget = checkbox
             accessor = lambda toggle=checkbox: toggle.isChecked()
             setter = lambda val, toggle=checkbox: toggle.setChecked(bool(val))
-            reset = lambda toggle=checkbox: toggle.setChecked(False)
+            reset = lambda toggle=checkbox: toggle.setChecked(True if field.name == "browser_emulation" else False)
         else:
             line_edit = QLineEdit()
             line_edit.setPlaceholderText(field.placeholder)

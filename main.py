@@ -98,6 +98,14 @@ def main() -> None:
         console_handler.setFormatter(formatter)
         root_logger.addHandler(console_handler)
 
+    def handle_exception(exc_type, exc_value, exc_traceback):
+        if issubclass(exc_type, KeyboardInterrupt):
+            sys.__excepthook__(exc_type, exc_value, exc_traceback)
+            return
+        logging.critical("Unhandled exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+    sys.excepthook = handle_exception
+
     # Ensure Playwright browsers are installed
     install_playwright_browsers()
 

@@ -1,6 +1,6 @@
 from dataclasses import replace
 
-from PySide6.QtCore import Signal, QUrl, QTimer
+from PySide6.QtCore import Qt, Signal, QUrl, QTimer
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QWidget,

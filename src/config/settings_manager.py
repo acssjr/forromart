@@ -11,7 +11,7 @@ class AppSettings:
     """A dataclass to hold application settings for type safety."""
     download_path: str = "./downloads"
     video_quality: str = "Mais alta"
-    max_concurrent_segment_downloads: int = 1
+    max_concurrent_segment_downloads: int = 5
     timeout_seconds: int = 30
     download_subtitles: bool = True
     download_podcasts: bool = True

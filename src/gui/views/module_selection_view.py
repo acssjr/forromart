@@ -1,15 +1,31 @@
 import json
 import logging
 from PySide6.QtCore import Signal, Qt
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTreeWidget, QTreeWidgetItem, QPushButton, QLabel, QLineEdit
+from PySide6.QtWidgets import (
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QTreeWidget,
+    QTreeWidgetItem,
+    QPushButton,
+    QLabel,
+    QLineEdit,
+    QGroupBox,
+    QComboBox,
+    QSizePolicy,
+)
+from src.config.settings_manager import SettingsManager
 
 class ModuleSelectionView(QWidget):
     """Third screen: allows selection of modules and lessons."""
     download_requested = Signal(str)
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(self, settings_manager: SettingsManager, parent: QWidget | None = None) -> None:
         super().__init__(parent)
+        self._settings_manager = settings_manager
         self._courses_by_id = {}
+        self._last_clicked_item = None
+        
         layout = QVBoxLayout(self)
         layout.addWidget(QLabel("Selecione o conteúdo a ser baixado:"))
 
@@ -22,6 +38,7 @@ class ModuleSelectionView(QWidget):
         self.tree_widget = QTreeWidget()
         self.tree_widget.setHeaderLabel("Conteúdo do Curso")
         self.tree_widget.itemChanged.connect(self._on_item_changed)
+        self.tree_widget.itemClicked.connect(self._on_item_clicked)
 
         btn_layout = QHBoxLayout()
         self.btn_select_all = QPushButton("Selecionar Tudo")
@@ -42,11 +59,61 @@ class ModuleSelectionView(QWidget):
 
         layout.addWidget(self.tree_widget)
 
+        # Folder Organization Mode GroupBox directly on this view for live preview/selection
+        org_group = QGroupBox("Estrutura das Pastas e Arquivos")
+        org_group_layout = QVBoxLayout(org_group)
+        
+        combo_layout = QHBoxLayout()
+        combo_layout.addWidget(QLabel("Modo de Organização:"))
+        
+        self.folder_org_combo = QComboBox()
+        self.folder_org_combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.folder_org_combo.addItem("Padrão (Subpastas + 1. Aula.mp4)", "legacy")
+        self.folder_org_combo.addItem("Plano (Sem subpastas de aula - Recomendado)", "flat")
+        self.folder_org_combo.addItem("Misto (Subpastas + Vídeos renomeados)", "folders_descriptive")
+        self.folder_org_combo.currentIndexChanged.connect(self._update_org_preview)
+        combo_layout.addWidget(self.folder_org_combo)
+        org_group_layout.addLayout(combo_layout)
+        
+        self.preview_label = QLabel()
+        self.preview_label.setStyleSheet(
+            "color: #3daee9; font-family: 'Consolas', monospace; font-size: 11px; "
+            "background-color: rgba(61, 174, 233, 0.08); border: 1px solid rgba(61, 174, 233, 0.3); "
+            "border-radius: 4px; padding: 8px;"
+        )
+        self.preview_label.setTextFormat(Qt.TextFormat.RichText)
+        org_group_layout.addWidget(self.preview_label)
+        
+        layout.addWidget(org_group)
+
         self.download_button = QPushButton("Baixar Selecionados")
         self.download_button.clicked.connect(self._on_download)
-
-        layout.addWidget(self.tree_widget)
+        self.download_button.setStyleSheet("""
+            QPushButton {
+                padding: 12px 24px;
+                font-weight: 700;
+                font-size: 14px;
+                background-color: #27ae60;
+                color: white;
+                border: none;
+                border-radius: 6px;
+            }
+            QPushButton:hover {
+                background-color: #2ecc71;
+            }
+            QPushButton:pressed {
+                background-color: #1e8449;
+            }
+        """)
         layout.addWidget(self.download_button)
+
+        # Initialize combo selection and preview
+        settings = self._settings_manager.get_settings()
+        saved_mode = getattr(settings, "folder_organization_mode", "legacy")
+        idx = self.folder_org_combo.findData(saved_mode)
+        if idx != -1:
+            self.folder_org_combo.setCurrentIndex(idx)
+        self._update_org_preview()
 
     def _on_item_changed(self, item: QTreeWidgetItem, column: int) -> None:
         """Handles changes in item's check state to update parents and children."""
@@ -87,9 +154,18 @@ class ModuleSelectionView(QWidget):
 
     def update_modules(self, content: dict, courses: list) -> None:
         """Clears the tree and populates it with course modules and lessons."""
+        self._last_clicked_item = None
         self.search_input.clear()
         self.tree_widget.clear()
         self._courses_by_id = {str(course["id"]): course for course in courses}
+
+        # Sync the organization mode combobox with current settings
+        settings = self._settings_manager.get_settings()
+        saved_mode = getattr(settings, "folder_organization_mode", "legacy")
+        idx = self.folder_org_combo.findData(saved_mode)
+        if idx != -1:
+            self.folder_org_combo.setCurrentIndex(idx)
+        self._update_org_preview()
 
         for course_id, course_data in content.items():
             course_item = QTreeWidgetItem(self.tree_widget, [course_data["title"]])
@@ -225,3 +301,102 @@ class ModuleSelectionView(QWidget):
                     module_item = course_item.child(j)
                     if not module_item.isHidden():
                         module_item.setExpanded(True)
+
+    def _on_item_clicked(self, item: QTreeWidgetItem, column: int) -> None:
+        from PySide6.QtWidgets import QApplication
+        modifiers = QApplication.keyboardModifiers()
+        if modifiers & Qt.KeyboardModifier.ShiftModifier and getattr(self, "_last_clicked_item", None):
+            self._select_range(self._last_clicked_item, item, column)
+        else:
+            self._last_clicked_item = item
+
+    def _select_range(self, item_from: QTreeWidgetItem, item_to: QTreeWidgetItem, column: int) -> None:
+        all_items = []
+        def traverse(parent_item):
+            for i in range(parent_item.childCount()):
+                child = parent_item.child(i)
+                all_items.append(child)
+                traverse(child)
+        traverse(self.tree_widget.invisibleRootItem())
+
+        try:
+            idx_from = all_items.index(item_from)
+            idx_to = all_items.index(item_to)
+        except ValueError:
+            self._last_clicked_item = item_to
+            return
+
+        start = min(idx_from, idx_to)
+        end = max(idx_from, idx_to)
+        
+        target_state = item_to.checkState(column)
+
+        self.tree_widget.blockSignals(True)
+        for i in range(start, end + 1):
+            target_item = all_items[i]
+            if not target_item.isDisabled():
+                target_item.setCheckState(column, target_state)
+                if target_state != Qt.CheckState.PartiallyChecked:
+                    self._recursive_set_children_state(target_item, target_state, column)
+        self.tree_widget.blockSignals(False)
+
+        self.tree_widget.blockSignals(True)
+        unique_parents = set()
+        for i in range(start, end + 1):
+            parent = all_items[i].parent()
+            if parent:
+                unique_parents.add(parent)
+        for parent in unique_parents:
+            self._update_parent_state(parent, column)
+        self.tree_widget.blockSignals(False)
+        
+        self._last_clicked_item = item_to
+
+    def _recursive_set_children_state(self, item: QTreeWidgetItem, state: Qt.CheckState, column: int) -> None:
+        for i in range(item.childCount()):
+            child = item.child(i)
+            if not child.isDisabled():
+                child.setCheckState(column, state)
+                self._recursive_set_children_state(child, state, column)
+
+    def _update_org_preview(self) -> None:
+        mode = self.folder_org_combo.currentData()
+        
+        # Save the new organization mode to settings on the fly
+        settings = self._settings_manager.get_settings()
+        if getattr(settings, "folder_organization_mode", "legacy") != mode:
+            settings.folder_organization_mode = mode
+            self._settings_manager.save_settings(settings)
+            
+        # Update preview text
+        if mode == "flat":
+            preview = (
+                "<b>Modo Plano (Sem subpastas de aula - Recomendado):</b><br/>"
+                "📂 downloads/<br/>"
+                " ┗ 📂 Forró/<br/>"
+                "    ┗ 📂 AV1 - Sequências/<br/>"
+                "       ┗ 📄 <b>01 - 1.0 Sequencia 1 - Dançando.mp4</b><br/>"
+                "       ┗ 📄 01 - 1.0 Sequencia 1 - Dançando - Descrição.txt"
+            )
+        elif mode == "folders_descriptive":
+            preview = (
+                "<b>Modo Misto (Subpastas + Vídeos descritivos):</b><br/>"
+                "📂 downloads/<br/>"
+                " ┗ 📂 Forró/<br/>"
+                "    ┗ 📂 AV1 - Sequências/<br/>"
+                "       ┗ 📂 01. 1.0 Sequencia 1 - Dançando/<br/>"
+                "          ┗ 📄 <b>01. 1.0 Sequencia 1 - Dançando.mp4</b><br/>"
+                "          ┗ 📄 01. 1.0 Sequencia 1 - Dançando - Descrição.txt"
+            )
+        else: # legacy
+            preview = (
+                "<b>Modo Padrão (Legado - Subpastas + Arquivo genérico):</b><br/>"
+                "📂 downloads/<br/>"
+                " ┗ 📂 Forró/<br/>"
+                "    ┗ 📂 AV1 - Sequências/<br/>"
+                "       ┗ 📂 1. 1.0 Sequencia 1 - Dançando/<br/>"
+                "          ┗ 📄 <b>1. Aula.mp4</b><br/>"
+                "          ┗ 📄 Descrição.txt"
+            )
+            
+        self.preview_label.setText(preview)

@@ -62,7 +62,7 @@ class MainWindow(QMainWindow):
         self.auth_tab_widget.addTab(self.standalone_downloads_view, "(Previa) Download Avulso")
 
         self.course_selection_view = CourseSelectionView()
-        self.module_selection_view = ModuleSelectionView()
+        self.module_selection_view = ModuleSelectionView(self._settings_manager)
         self.progress_view = ProgressView()
 
         self._stacked_widget.addWidget(self.auth_tab_widget)

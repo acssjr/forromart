@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
     def __init__(self, settings_manager: SettingsManager, parent: QWidget | None = None) -> None:
         """Initializes the main window."""
         super().__init__(parent)
-        self.setWindowTitle("Katomart! Visite o Repositório em github.com/katomaro/katomart ou assine em katomaro.com/store/katomart")
+        self.setWindowTitle("Forromart! - Versão Customizada Premium (Bypass)")
         self.setMinimumSize(650, 450)
         self.resize(750, 650)
 
@@ -72,17 +72,8 @@ class MainWindow(QMainWindow):
         self._setup_dashboard_button()
 
     def _show_subscription_prompt(self) -> None:
-        """Displays a pop-up encouraging the monthly subscription."""
-        settings = self._settings_manager.get_settings()
-        if settings.membership_email:
-            return
-
-        message = (
-            "Manter um Software desse nível \u00e9 um trabalho extensivo e custoso, que exige muito tempo e estudo, além de acessos legítimos em plataformas. "
-            "Com uma assinatura mensal de apenas R$9.90, você pode ajudar a manter o Katomart! ativo e em constante melhoria, além de desbloquear downloads mais rápido e funções extras poderosas.\n\n"
-            "Visite https://katomaro.com/store/katomart e conhe\u00e7a os benefícios. Uma janela no seu navegador foi aberta para você verificar."
-        )
-        QMessageBox.information(self, "Suporte o Katomart!", message)
+        """Displays a pop-up encouraging the monthly subscription (disabled)."""
+        return
 
     def _check_ffmpeg_availability(self) -> None:
         """Warns the user on startup if ffmpeg is not accessible."""
@@ -148,7 +139,7 @@ class MainWindow(QMainWindow):
         if remote_build != BUILD_NUMBER:
             message = (
                 "Uma nova atualização está disponível no GitHub. "
-                "Baixe a versão mais recente em https://github.com/katomaro/katomart."
+                "Baixe a versão mais recente em https://github.com/acssjr/forromart."
             )
             QMessageBox.information(self, "Atualização disponível", message)
 
@@ -158,7 +149,7 @@ class MainWindow(QMainWindow):
         message = (
             "Não foi possível verificar atualizações porque o GitHub pode estar inacessível. "
             "As atualizações automáticas não puderam ser verificadas; verifique manualmente o repositório em "
-            "https://github.com/katomaro/katomart."
+            "https://github.com/acssjr/forromart."
         )
         QMessageBox.warning(self, "Verificação de atualização indisponível", message)
 

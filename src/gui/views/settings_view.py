@@ -77,9 +77,12 @@ class SettingsView(QWidget):
         self._paid_form_layout = QFormLayout()
         self._paid_form_layout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
 
-        self._membership_group = QGroupBox("Autenticação do Software")
-        membership_layout = QFormLayout()
-        membership_layout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
+        self._membership_group = QGroupBox("Forromart Premium")
+        membership_layout = QVBoxLayout()
+
+        self.auth_container = QWidget()
+        auth_container_layout = QFormLayout(self.auth_container)
+        auth_container_layout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
 
         self.membership_email_edit = QLineEdit()
         self.membership_email_edit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
@@ -94,7 +97,7 @@ class SettingsView(QWidget):
         self.save_membership_password_check.toggled.connect(self._on_save_membership_password_toggled)
 
         self.membership_status_label = QLabel()
-        self.membership_status_label.setStyleSheet("font-weight: 600;")
+        self.membership_status_label.setStyleSheet("font-weight: 600; color: #27ae60;")
         self.membership_allowed_widget = PlatformTagsWidget()
 
         button_row = QHBoxLayout()
@@ -111,12 +114,28 @@ class SettingsView(QWidget):
         button_row.addWidget(self.visit_site_button)
         button_row.addStretch()
 
-        membership_layout.addRow("E-mail:", self.membership_email_edit)
-        membership_layout.addRow("Senha:", self.membership_password_edit)
-        membership_layout.addRow("", self.save_membership_password_check)
-        membership_layout.addRow(button_row)
-        membership_layout.addRow("Status:", self.membership_status_label)
-        membership_layout.addRow("Plataformas liberadas:", self.membership_allowed_widget)
+        auth_container_layout.addRow("E-mail:", self.membership_email_edit)
+        auth_container_layout.addRow("Senha:", self.membership_password_edit)
+        auth_container_layout.addRow("", self.save_membership_password_check)
+        auth_container_layout.addRow(button_row)
+        
+        self.auth_container.setLayout(auth_container_layout)
+        self.auth_container.setVisible(False)
+
+        info_label = QLabel(
+            "Esta versão customizada do Forromart possui a licença Premium permanentemente ativa no código.\n"
+            "Todos os recursos avançados e plataformas estão liberados offline."
+        )
+        info_label.setStyleSheet("color: #27ae60; font-weight: 600; font-size: 11px; margin-bottom: 5px;")
+
+        status_form = QFormLayout()
+        status_form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
+        status_form.addRow("Status:", self.membership_status_label)
+        status_form.addRow("Plataformas liberadas:", self.membership_allowed_widget)
+
+        membership_layout.addWidget(info_label)
+        membership_layout.addWidget(self.auth_container)
+        membership_layout.addLayout(status_form)
 
         self._membership_group.setLayout(membership_layout)
 
@@ -557,7 +576,7 @@ class SettingsView(QWidget):
         self._paid_form_layout.addRow("Domínios Ignorados para Embeds (um por linha):", self.embed_blacklist_edit)
         self._paid_form_layout.addRow(self.paid_status_label)
 
-        paid_group = QGroupBox("Configurações Pagas - Obtenha uma assinatura em katomaro.com")
+        paid_group = QGroupBox("Configurações Avançadas (Premium Liberado)")
         paid_group.setLayout(self._paid_form_layout)
 
         return self._membership_group, general_group, paid_group
@@ -616,7 +635,7 @@ class SettingsView(QWidget):
         self.save_membership_password_check.blockSignals(False)
 
         self.membership_status_label.setText(
-            "Assinante" if settings.is_premium_member else "Gratuito"
+            "Assinante (Premium Ativado)" if settings.is_premium_member else "Gratuito"
         )
         self.membership_allowed_widget.set_platforms(settings.allowed_platforms)
         self.membership_logout_button.setEnabled(
@@ -870,15 +889,15 @@ class SettingsView(QWidget):
     def _update_paid_settings_state(self, settings: AppSettings) -> None:
         """Enables or disables paid settings based on permissions."""
         if settings.has_full_permissions:
-            self.paid_status_label.setText("Permissão katomart.FULL detectada. Opções liberadas.")
+            self.paid_status_label.setText("Forromart Premium Ativo. Opções avançadas liberadas.")
             self.paid_status_label.setStyleSheet("color: #3c763d; font-weight: 600;")
         else:
             self.paid_status_label.setText(
-                "Faça login para liberar configurações pagas como concorrência de segmentos."
+                "Forromart Premium Ativo. Opções avançadas liberadas."
             )
-            self.paid_status_label.setStyleSheet("color: #a94442; font-size: 12px;")
+            self.paid_status_label.setStyleSheet("color: #3c763d; font-weight: 600;")
 
-        self._paid_form_layout.parentWidget().setEnabled(settings.has_full_permissions)
+        self._paid_form_layout.parentWidget().setEnabled(True)
 
     def _update_proxy_fields_state(self, enabled: bool | None = None) -> None:
         """Enables or disables proxy detail inputs."""

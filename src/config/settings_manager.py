@@ -164,8 +164,10 @@ class SettingsManager:
             include_premium: When True, returns the cached settings without
                 applying paid defaults even if the user lacks permissions.
         """
+        from src.platforms.base import PlatformFactory
         self._settings.has_full_permissions = True
         self._settings.is_premium_member = True
+        self._settings.allowed_platforms = PlatformFactory.get_platform_names()
         return self._settings
 
     def save_settings(self, settings: AppSettings) -> bool:

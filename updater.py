@@ -7,7 +7,7 @@ from io import BytesIO
 
 REPO_OWNER = "acssjr"
 REPO_NAME = "forromart"
-BRANCHES_TO_TRY = ["master"]
+BRANCHES_TO_TRY = ["main", "master"]
 
 def download_and_extract():
     print(f"Iniciando atualização do {REPO_NAME}...")
